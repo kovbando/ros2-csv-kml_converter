@@ -2,13 +2,30 @@ import pandas as pd
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom.minidom import parseString
 import os
+import sys
 
-# Load the CSV file
-csv_file = 'fix.csv'  # Update with your local CSV file path
-data = pd.read_csv(csv_file)
+def main():
+    # Check for path argument
+    if len(sys.argv) < 2:
+        print("Usage: python csv-to-kml.py <folder_path>")
+        sys.exit(1)
 
-# Filter out coordinates near (0, 0) within a radius of 0.5
-data = data[(data['latitude'].abs() > 0.5) | (data['longitude'].abs() > 0.5)]
+    folder_path = sys.argv[1]
+    csv_file = os.path.join(folder_path, 'fix.csv')
+    output_kml = os.path.join(folder_path, 'fix.kml')
+
+    # Load the CSV file
+    if not os.path.isfile(csv_file):
+        print(f"CSV file not found: {csv_file}")
+        sys.exit(1)
+    data = pd.read_csv(csv_file)
+
+    # Filter out coordinates near (0, 0) within a radius of 0.5
+    data = data[(data['latitude'].abs() > 0.5) | (data['longitude'].abs() > 0.5)]
+
+    # Create the KML file with a trajectory
+    create_kml_trajectory(data, output_kml)
+    print(f"KML file created: {output_kml}")
 
 # Function to create a KML file with a single trajectory
 def create_kml_trajectory(data, output_file):
@@ -53,11 +70,6 @@ def create_kml_trajectory(data, output_file):
     with open(output_file, 'w', encoding='utf-8') as file:
         file.write(pretty_kml)
 
-# Define output file path
-output_kml = os.path.join(os.getcwd(), 'output.kml')
-
-# Create the KML file with a trajectory
-create_kml_trajectory(data, output_kml)
-
-print(f"KML file created: {output_kml}")
+if __name__ == "__main__":
+    main()
 
